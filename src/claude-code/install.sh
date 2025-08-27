@@ -176,29 +176,41 @@ fi
 
 # Setup firewall if enabled
 if [ "${ENABLE_FIREWALL}" = "true" ]; then
-    echo "Setting up security firewall..."
+    echo "Configuring firewall setup..."
     
     # Copy firewall initialization script
     cp "$(dirname "$0")/init-firewall.sh" /usr/local/bin/init-firewall.sh
     chmod +x /usr/local/bin/init-firewall.sh
     
-    # Pass additional domains if provided
+    # Setup sudoers to allow user to run firewall script
+    echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
+    chmod 0440 /etc/sudoers.d/firewall
+    
+    # Pass additional domains if provided via environment file
     if [ -n "${ADDITIONAL_DOMAINS}" ]; then
-        export CLAUDE_ADDITIONAL_DOMAINS="${ADDITIONAL_DOMAINS}"
+        echo "CLAUDE_ADDITIONAL_DOMAINS=\"${ADDITIONAL_DOMAINS}\"" >> /etc/environment
     fi
     
-    # Initialize firewall
-    /usr/local/bin/init-firewall.sh
-    
-    # Setup firewall to start on container start
-    cat > /etc/profile.d/claude-firewall.sh << 'EOF'
+    # Create a startup script that will run firewall on container start
+    cat > /usr/local/bin/start-firewall.sh << 'EOF'
 #!/bin/bash
-# Reinitialize firewall on container start
+# Initialize firewall on container start with proper privileges
 if [ -x /usr/local/bin/init-firewall.sh ]; then
-    sudo /usr/local/bin/init-firewall.sh
+    echo "Initializing Claude Code security firewall..."
+    sudo /usr/local/bin/init-firewall.sh || {
+        echo "Warning: Firewall initialization failed. Container requires NET_ADMIN capability."
+        echo "Add '--cap-add=NET_ADMIN --cap-add=NET_RAW' to your docker run command or"
+        echo "set 'capAdd: [\"NET_ADMIN\", \"NET_RAW\"]' in devcontainer.json"
+    }
 fi
 EOF
-    chmod +x /etc/profile.d/claude-firewall.sh
+    chmod +x /usr/local/bin/start-firewall.sh
+    
+    # Add to bashrc to run on login
+    echo "/usr/local/bin/start-firewall.sh" >> /home/${_REMOTE_USER}/.bashrc
+    
+    echo "Firewall will be initialized on container start"
+    echo "Note: Container must be run with NET_ADMIN and NET_RAW capabilities"
 fi
 
 # Create session persistence directory

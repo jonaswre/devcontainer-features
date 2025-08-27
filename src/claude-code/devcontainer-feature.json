@@ -48,7 +48,8 @@
     "CLAUDE_CODE_DEVCONTAINER": "true"
   },
   "capAdd": [
-    "NET_ADMIN"
+    "NET_ADMIN",
+    "NET_RAW"
   ],
   "privileged": false,
   "installsAfter": [
