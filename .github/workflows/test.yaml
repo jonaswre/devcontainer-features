@@ -9,21 +9,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        scenario: [default, no-firewall, dangerous-skip, node22, corporate]
     steps:
       - uses: actions/checkout@v4
       
-      - name: Test devcontainer feature
+      - name: Smoke test
         uses: devcontainers/action@v1
         with:
-          test-features: true
+          generate-docs: false
           base-path-to-features: ./src
-          test-scenario: ${{ matrix.scenario }}
-        
-      - name: Run validation tests
-        run: |
-          cd test/claude-code
-          chmod +x test.sh
-          ./test.sh
+          test-features: true
+          features: 'claude-code'
+          skip-scenarios: false
