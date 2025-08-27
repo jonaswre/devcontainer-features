@@ -76,8 +76,19 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     echo "Installing ZSH with productivity enhancements..."
     apt-get install -y zsh
     
-    # Install Oh My Zsh for the user
-    su - ${_REMOTE_USER} -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    # Install Oh My Zsh for the user (skip if already installed)
+    if [ ! -d "/home/${_REMOTE_USER}/.oh-my-zsh" ]; then
+        echo "Installing Oh My Zsh..."
+        export RUNZSH=no
+        export CHSH=no
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || {
+            echo "Oh My Zsh installation failed, continuing without it"
+        }
+        # Fix ownership
+        chown -R ${_REMOTE_USER}:${_REMOTE_USER} /home/${_REMOTE_USER}/.oh-my-zsh 2>/dev/null || true
+    else
+        echo "Oh My Zsh already installed"
+    fi
     
     # Configure ZSH plugins
     cat >> /home/${_REMOTE_USER}/.zshrc << 'EOF'
