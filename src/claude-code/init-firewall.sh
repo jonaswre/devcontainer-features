@@ -31,7 +31,6 @@ iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
 
 # Allow SSH (for git operations)
 iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 443 -m owner --uid-owner 0 -j ACCEPT
 
 # Whitelist essential domains
 ALLOWED_DOMAINS=(
@@ -85,10 +84,6 @@ for domain in "${ALLOWED_DOMAINS[@]}"; do
         echo "⚠ Could not resolve: $domain"
     fi
 done
-
-# Allow HTTPS to resolved IPs (fallback for dynamic resolution)
-iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 80 -j ACCEPT
 
 # Log dropped packets (for debugging)
 iptables -A OUTPUT -m limit --limit 2/min -j LOG --log-prefix "Firewall Dropped: " --log-level 4
