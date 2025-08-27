@@ -34,12 +34,17 @@ else
     exit 1
 fi
 
-# Test 5: Check for Claude Code (may not be available in test environment)
-if command -v claude-code &> /dev/null; then
+# Test 5: Check for Claude Code (binary is named 'claude')
+if command -v claude &> /dev/null; then
     echo "✅ Claude Code installed"
+    claude --version || true
+elif command -v claude-code &> /dev/null; then
+    echo "✅ Claude Code installed (alternate name)"
     claude-code --version || true
 else
-    echo "⚠️  Claude Code not found (may require manual verification)"
+    echo "❌ Claude Code not found"
+    echo "Expected 'claude' command to be available after npm install -g @anthropic-ai/claude-code"
+    exit 1
 fi
 
 # Test 6: Check for status command

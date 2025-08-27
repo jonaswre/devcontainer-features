@@ -48,16 +48,19 @@ npm install -g \
 
 # Install Claude Code CLI
 echo "Installing Claude Code CLI..."
-# Try npm installation first (standard method)
-npm install -g @anthropic-ai/claude-code || {
+# Install via npm (the binary will be named 'claude')
+if npm install -g @anthropic-ai/claude-code; then
+    echo "Claude Code npm package installed successfully"
+    # Ensure npm bin directory is in PATH
+    export PATH="$(npm bin -g):$PATH"
+else
     echo "npm installation failed, trying alternative method..."
     # Alternative: Try the native installer
     curl -fsSL https://claude.ai/install.sh | bash || {
         echo "Warning: Claude Code installation may have failed"
         echo "Please install manually after container creation"
-        # Don't fail the entire installation for this
     }
-}
+fi
 
 # Verify installation (optional - may not be available in all environments)
 if command -v claude &> /dev/null; then
