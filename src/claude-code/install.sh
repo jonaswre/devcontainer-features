@@ -10,6 +10,10 @@ ADDITIONAL_DOMAINS="${ADDITIONALDOMAINS:-}"
 PROXY_URL="${PROXYURL:-}"
 API_KEY_SOURCE="${APIKEYSOURCE:-environment}"
 
+# Set default user if not provided by devcontainer
+_REMOTE_USER="${_REMOTE_USER:-${REMOTE_USER:-${USERNAME:-vscode}}}"
+_REMOTE_USER_HOME="${_REMOTE_USER_HOME:-/home/${_REMOTE_USER}}"
+
 echo "==============================================="
 echo "Installing Claude Code Development Container"
 echo "==============================================="
@@ -80,21 +84,25 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
     apt-get install -y zsh
     
     # Install Oh My Zsh for the user (skip if already installed)
-    if [ ! -d "/home/${_REMOTE_USER}/.oh-my-zsh" ]; then
+    if [ ! -d "${_REMOTE_USER_HOME}/.oh-my-zsh" ]; then
         echo "Installing Oh My Zsh..."
         export RUNZSH=no
         export CHSH=no
+        export ZSH="${_REMOTE_USER_HOME}/.oh-my-zsh"
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || {
             echo "Oh My Zsh installation failed, continuing without it"
         }
-        # Fix ownership
-        chown -R ${_REMOTE_USER}:${_REMOTE_USER} /home/${_REMOTE_USER}/.oh-my-zsh 2>/dev/null || true
+        # Fix ownership if user exists
+        if id "${_REMOTE_USER}" &>/dev/null; then
+            chown -R ${_REMOTE_USER}:${_REMOTE_USER} "${_REMOTE_USER_HOME}/.oh-my-zsh" 2>/dev/null || true
+        fi
     else
         echo "Oh My Zsh already installed"
     fi
     
     # Configure ZSH plugins
-    cat >> /home/${_REMOTE_USER}/.zshrc << 'EOF'
+    mkdir -p "${_REMOTE_USER_HOME}"
+    cat >> "${_REMOTE_USER_HOME}/.zshrc" << 'EOF'
 
 # Claude Code devcontainer configuration
 export CLAUDE_CODE_DEVCONTAINER=true
@@ -119,8 +127,10 @@ alias claude-test='claude-code --help'
 
 EOF
     
-    # Set ZSH as default shell
-    chsh -s $(which zsh) ${_REMOTE_USER}
+    # Set ZSH as default shell (only if user exists)
+    if id "${_REMOTE_USER}" &>/dev/null; then
+        chsh -s $(which zsh) ${_REMOTE_USER}
+    fi
 fi
 
 # Configure proxy if provided
@@ -157,10 +167,12 @@ EOF
         ;;
     file)
         echo "API key will be sourced from file ~/.anthropic/api_key"
-        mkdir -p /home/${_REMOTE_USER}/.anthropic
-        touch /home/${_REMOTE_USER}/.anthropic/api_key
-        chmod 600 /home/${_REMOTE_USER}/.anthropic/api_key
-        chown -R ${_REMOTE_USER}:${_REMOTE_USER} /home/${_REMOTE_USER}/.anthropic
+        mkdir -p "${_REMOTE_USER_HOME}/.anthropic"
+        touch "${_REMOTE_USER_HOME}/.anthropic/api_key"
+        chmod 600 "${_REMOTE_USER_HOME}/.anthropic/api_key"
+        if id "${_REMOTE_USER}" &>/dev/null; then
+            chown -R ${_REMOTE_USER}:${_REMOTE_USER} "${_REMOTE_USER_HOME}/.anthropic"
+        fi
         ;;
     none)
         echo "API key configuration skipped"
@@ -210,15 +222,18 @@ EOF
     chmod +x /usr/local/bin/start-firewall.sh
     
     # Add to bashrc to run on login
-    echo "/usr/local/bin/start-firewall.sh" >> /home/${_REMOTE_USER}/.bashrc
+    mkdir -p "${_REMOTE_USER_HOME}"
+    echo "/usr/local/bin/start-firewall.sh" >> "${_REMOTE_USER_HOME}/.bashrc"
     
     echo "Firewall will be initialized on container start"
     echo "Note: Container must be run with NET_ADMIN and NET_RAW capabilities"
 fi
 
 # Create session persistence directory
-mkdir -p /home/${_REMOTE_USER}/.claude-code-sessions
-chown -R ${_REMOTE_USER}:${_REMOTE_USER} /home/${_REMOTE_USER}/.claude-code-sessions
+mkdir -p "${_REMOTE_USER_HOME}/.claude-code-sessions"
+if id "${_REMOTE_USER}" &>/dev/null; then
+    chown -R ${_REMOTE_USER}:${_REMOTE_USER} "${_REMOTE_USER_HOME}/.claude-code-sessions"
+fi
 
 # Create helper script for status checking
 cat > /usr/local/bin/claude-code-status << 'EOF'

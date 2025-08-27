@@ -60,11 +60,19 @@ jobs:
           COPY ./src/claude-code /tmp/feature-src
           COPY ./test/claude-code /tmp/test-src
           
+          # Create a user for testing
+          RUN useradd -m -s /bin/bash vscode && \
+              usermod -aG sudo vscode && \
+              echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          
           # Install the feature
           RUN apt-get update && \
               cd /tmp/feature-src && \
               chmod +x install.sh && \
-              ENABLE_FIREWALL=true ./install.sh
+              _REMOTE_USER=vscode \
+              _REMOTE_USER_HOME=/home/vscode \
+              ENABLEFIREWALL=true \
+              ./install.sh
           
           # Copy test files
           RUN cp -r /tmp/test-src /test
