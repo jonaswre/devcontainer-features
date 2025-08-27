@@ -63,5 +63,43 @@ if command -v fzf &> /dev/null; then
     echo "✅ FZF installed"
 fi
 
+# Test 8: Check firewall functionality if enabled (SECURITY CRITICAL)
+if [ "${ENABLEFIREWALL:-true}" = "true" ] && [ -f /usr/local/bin/init-firewall.sh ]; then
+    echo "Testing firewall security..."
+    
+    # Check if sudoers is configured
+    if ! sudo -n true 2>/dev/null; then
+        echo "❌ Firewall sudo permissions not configured properly"
+        exit 1
+    fi
+    
+    # Initialize firewall
+    if ! sudo /usr/local/bin/init-firewall.sh; then
+        echo "❌ Failed to initialize firewall - security risk!"
+        echo "Container must be run with --cap-add=NET_ADMIN --cap-add=NET_RAW"
+        exit 1
+    fi
+    
+    echo "Firewall initialized, testing blocking..."
+    
+    # Test that unauthorized domains are blocked (MUST FAIL if accessible)
+    if curl -s --max-time 3 https://google.com > /dev/null 2>&1; then
+        echo "❌ SECURITY FAILURE: google.com is accessible (should be blocked)"
+        exit 1
+    else
+        echo "✅ google.com blocked"
+    fi
+    
+    # Test that allowed domains still work
+    if ! curl -s --max-time 3 https://api.github.com/zen > /dev/null 2>&1; then
+        echo "❌ GitHub API blocked (should be allowed)"
+        exit 1
+    else
+        echo "✅ GitHub API accessible"
+    fi
+    
+    echo "✅ Firewall security verified - unauthorized domains blocked"
+fi
+
 echo ""
 echo "Core tests passed! ✨"

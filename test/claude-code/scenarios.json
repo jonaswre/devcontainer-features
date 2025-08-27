@@ -8,6 +8,15 @@
       }
     },
     {
+      "id": "firewall-blocking",
+      "description": "Test firewall blocks unauthorized domains",
+      "features": {
+        "claude-code": {
+          "enableFirewall": true
+        }
+      }
+    },
+    {
       "id": "no-firewall",
       "description": "Test without firewall",
       "features": {
