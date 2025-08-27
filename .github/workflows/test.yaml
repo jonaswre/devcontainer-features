@@ -40,4 +40,4 @@ jobs:
             --skip-scenarios \
             --features ${{ matrix.features }} \
             --base-image ${{ matrix.baseImage }} \
-            ./src
+            .
