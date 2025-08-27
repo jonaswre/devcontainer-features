@@ -60,9 +60,8 @@ jobs:
           COPY ./src/claude-code /tmp/feature-src
           COPY ./test/claude-code /tmp/test-src
           
-          # Create a user for testing
-          RUN useradd -m -s /bin/bash vscode && \
-              usermod -aG sudo vscode && \
+          # Ensure vscode user has sudo permissions (user already exists in base image)
+          RUN usermod -aG sudo vscode 2>/dev/null || true && \
               echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
           
           # Install the feature
