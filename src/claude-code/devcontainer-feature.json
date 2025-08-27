@@ -1,0 +1,74 @@
+{
+  "id": "claude-code",
+  "version": "1.0.0",
+  "name": "Claude Code Development Container",
+  "documentationURL": "https://docs.anthropic.com/en/docs/claude-code",
+  "licenseURL": "https://github.com/jonaswre/devcontainer-features/blob/main/LICENSE",
+  "description": "Production-ready Claude Code setup with enhanced security, firewall rules, and developer tools",
+  "options": {
+    "enableFirewall": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable network firewall with restricted access to whitelisted domains"
+    },
+    "dangerousSkipPermissions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Configure Claude Code to run with --dangerously-skip-permissions flag"
+    },
+    "nodeVersion": {
+      "type": "string",
+      "enum": ["18", "20", "22"],
+      "default": "20",
+      "description": "Node.js version to install"
+    },
+    "installZsh": {
+      "type": "boolean",
+      "default": true,
+      "description": "Install ZSH with productivity enhancements"
+    },
+    "additionalDomains": {
+      "type": "string",
+      "default": "",
+      "description": "Comma-separated list of additional domains to whitelist in firewall (e.g., 'api.example.com,cdn.example.com')"
+    },
+    "proxyUrl": {
+      "type": "string",
+      "default": "",
+      "description": "Corporate proxy URL if needed (e.g., 'http://proxy.company.com:8080')"
+    },
+    "apiKeySource": {
+      "type": "string",
+      "enum": ["environment", "file", "none"],
+      "default": "environment",
+      "description": "Source for ANTHROPIC_API_KEY configuration"
+    }
+  },
+  "containerEnv": {
+    "CLAUDE_CODE_DEVCONTAINER": "true"
+  },
+  "capAdd": [
+    "NET_ADMIN"
+  ],
+  "privileged": false,
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/docker-in-docker"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/.git/**": true
+        }
+      }
+    }
+  }
+}

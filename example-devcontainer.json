@@ -1,0 +1,22 @@
+{
+  "name": "My Secure Project",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:1": {
+      "enableFirewall": true,
+      "nodeVersion": "20",
+      "dangerousSkipPermissions": false
+    }
+  },
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+  },
+  "postStartCommand": "claude-code-status",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}

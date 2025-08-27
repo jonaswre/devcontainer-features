@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scenario: [default, no-firewall, dangerous-skip, node22, corporate]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test devcontainer feature
+        uses: devcontainers/action@v1
+        with:
+          test-features: true
+          base-path-to-features: ./src
+          test-scenario: ${{ matrix.scenario }}
+        
+      - name: Run validation tests
+        run: |
+          cd test/claude-code
+          chmod +x test.sh
+          ./test.sh

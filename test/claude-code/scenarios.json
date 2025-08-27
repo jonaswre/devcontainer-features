@@ -1,0 +1,48 @@
+{
+  "scenarios": [
+    {
+      "id": "default",
+      "description": "Test default installation",
+      "features": {
+        "claude-code": {}
+      }
+    },
+    {
+      "id": "no-firewall",
+      "description": "Test without firewall",
+      "features": {
+        "claude-code": {
+          "enableFirewall": false
+        }
+      }
+    },
+    {
+      "id": "dangerous-skip",
+      "description": "Test with dangerous skip permissions",
+      "features": {
+        "claude-code": {
+          "dangerousSkipPermissions": true
+        }
+      }
+    },
+    {
+      "id": "node22",
+      "description": "Test with Node.js 22",
+      "features": {
+        "claude-code": {
+          "nodeVersion": "22"
+        }
+      }
+    },
+    {
+      "id": "corporate",
+      "description": "Test corporate configuration",
+      "features": {
+        "claude-code": {
+          "proxyUrl": "http://proxy.example.com:8080",
+          "additionalDomains": "internal.example.com"
+        }
+      }
+    }
+  ]
+}
