@@ -1,0 +1,14 @@
+{
+  "name": "Test Claude Code with Firewall",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "./claude-code": {
+      "enableFirewall": true
+    }
+  },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
+  "postCreateCommand": "chmod +x /test/claude-code/test-with-firewall.sh && /test/claude-code/test-with-firewall.sh"
+}

@@ -41,3 +41,41 @@ jobs:
             --features ${{ matrix.features }} \
             --base-image ${{ matrix.baseImage }} \
             .
+  
+  test-firewall:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test firewall with proper capabilities
+        run: |
+          # Build and run container with firewall capabilities
+          docker build -t test-firewall-img \
+            --build-arg VARIANT=ubuntu \
+            -f - . <<EOF
+          FROM mcr.microsoft.com/devcontainers/base:ubuntu
+          
+          # Copy feature files
+          COPY ./src/claude-code /tmp/feature-src
+          COPY ./test/claude-code /tmp/test-src
+          
+          # Install the feature
+          RUN apt-get update && \
+              cd /tmp/feature-src && \
+              chmod +x install.sh && \
+              ENABLE_FIREWALL=true ./install.sh
+          
+          # Copy test files
+          RUN cp -r /tmp/test-src /test
+          
+          # Make test executable
+          RUN chmod +x /test/test-with-firewall.sh
+          EOF
+          
+          # Run container with NET_ADMIN and NET_RAW capabilities
+          docker run --rm \
+            --cap-add=NET_ADMIN \
+            --cap-add=NET_RAW \
+            test-firewall-img \
+            bash -c "sudo /usr/local/bin/init-firewall.sh && /test/test-with-firewall.sh"
