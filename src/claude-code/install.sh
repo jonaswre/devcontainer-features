@@ -48,12 +48,27 @@ npm install -g \
 
 # Install Claude Code CLI
 echo "Installing Claude Code CLI..."
-curl -fsSL https://storage.googleapis.com/anthropic-releases/claude-code/install.sh | sh
+# Try npm installation first (standard method)
+npm install -g @anthropic-ai/claude-code || {
+    echo "npm installation failed, trying alternative method..."
+    # Alternative: Try the native installer
+    curl -fsSL https://claude.ai/install.sh | bash || {
+        echo "Warning: Claude Code installation may have failed"
+        echo "Please install manually after container creation"
+        # Don't fail the entire installation for this
+    }
+}
 
-# Verify installation
-if ! command -v claude-code &> /dev/null; then
-    echo "Error: Claude Code installation failed"
-    exit 1
+# Verify installation (optional - may not be available in all environments)
+if command -v claude &> /dev/null; then
+    echo "✅ Claude Code CLI installed successfully"
+    claude --version || true
+elif command -v claude-code &> /dev/null; then
+    echo "✅ Claude Code CLI installed successfully"
+    claude-code --version || true
+else
+    echo "⚠️ Claude Code CLI not found in PATH"
+    echo "You may need to install it manually with: npm install -g @anthropic-ai/claude-code"
 fi
 
 # Install ZSH and Oh My Zsh if requested
@@ -184,7 +199,7 @@ cat > /usr/local/bin/claude-code-status << 'EOF'
 #!/bin/bash
 echo "Claude Code Development Container Status"
 echo "========================================"
-echo "Claude Code Version: $(claude-code --version 2>/dev/null || echo 'Not installed')"
+echo "Claude Code Version: $(claude --version 2>/dev/null || claude-code --version 2>/dev/null || echo 'Not installed')"
 echo "Node.js Version: $(node --version)"
 echo "NPM Version: $(npm --version)"
 echo "API Key Configured: ${ANTHROPIC_API_KEY:+Yes}"
