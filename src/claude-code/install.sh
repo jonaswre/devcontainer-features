@@ -200,6 +200,7 @@ if [ "${ENABLE_FIREWALL}" = "true" ]; then
     chmod +x /usr/local/bin/init-firewall.sh
     
     # Setup sudoers to allow user to run firewall script
+    mkdir -p /etc/sudoers.d
     echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
     chmod 0440 /etc/sudoers.d/firewall
     
