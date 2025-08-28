@@ -127,9 +127,10 @@ iptables -P FORWARD DROP
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# If using ipset, add the rule to allow traffic to the set
+# If using ipset, add the rules to allow HTTP/HTTPS traffic to the set
 if [ "$USE_IPSET" = true ]; then
-    iptables -A OUTPUT -m set --match-set allowed-domains dst -j ACCEPT
+    iptables -A OUTPUT -p tcp --dport 443 -m set --match-set allowed-domains dst -j ACCEPT
+    iptables -A OUTPUT -p tcp --dport 80 -m set --match-set allowed-domains dst -j ACCEPT
 fi
 
 # Explicitly reject remaining traffic for immediate feedback
