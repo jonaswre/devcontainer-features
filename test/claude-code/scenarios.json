@@ -1,0 +1,10 @@
+{
+  "no-firewall": {
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+      "claude-code": {
+        "enableFirewall": false
+      }
+    }
+  }
+}
