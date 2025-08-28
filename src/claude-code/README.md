@@ -1,30 +1,23 @@
-# Claude Code Development Container Feature
+# Claude Code DevContainer Feature
 
-Production-ready Claude Code setup with enhanced security, firewall rules, and developer tools following [official Anthropic standards](https://docs.anthropic.com/en/docs/claude-code).
+Minimal installation of Claude Code CLI with optional security firewall for DevContainers.
 
 ## Features
 
-- 🔒 **Security by Design**: Custom firewall restricting network access to only necessary services
-- 🚀 **Production-Ready**: Built on Node.js with essential development dependencies
-- 🛠️ **Developer Tools**: Git, ZSH, fzf, ripgrep, and more pre-installed
-- 🔧 **VS Code Integration**: Pre-configured extensions and optimized settings
-- 💾 **Session Persistence**: Preserves command history and configurations
-- 🌍 **Cross-Platform**: Works on macOS, Windows, and Linux
+- **Claude Code CLI**: Installs the official Claude Code command-line interface
+- **Security Firewall** (optional): Restricts network access to approved domains only
+- **Node.js**: Configurable Node.js version (18, 20, or 22)
+- **Proxy Support**: Configure corporate proxy settings if needed
+- **API Key Management**: Flexible API key configuration options
 
-## Quick Start
+## Installation
 
-Add to your `devcontainer.json`:
+Add this feature to your `devcontainer.json`:
 
 ```json
 {
   "features": {
-    "ghcr.io/jonaswre/devcontainer-features/claude-code:1": {
-      "enableFirewall": true,
-      "dangerousSkipPermissions": false
-    }
-  },
-  "remoteEnv": {
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {}
   }
 }
 ```
@@ -33,68 +26,94 @@ Add to your `devcontainer.json`:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| enableFirewall | boolean | true | Enable network firewall with restricted access |
-| dangerousSkipPermissions | boolean | false | Run Claude with --dangerously-skip-permissions |
-| nodeVersion | string | "20" | Node.js version (18, 20, or 22) |
-| installZsh | boolean | true | Install ZSH with productivity enhancements |
-| additionalDomains | string | "" | Additional domains to whitelist |
-| proxyUrl | string | "" | Corporate proxy URL |
-| apiKeySource | string | "environment" | API key configuration source |
+| `enableFirewall` | boolean | `true` | Enable network firewall with restricted access |
+| `dangerousSkipPermissions` | boolean | `false` | Run Claude Code with --dangerously-skip-permissions flag |
+| `nodeVersion` | string | `"20"` | Node.js version to install (18, 20, or 22) |
+| `additionalDomains` | string | `""` | Additional domains to whitelist (comma-separated) |
+| `proxyUrl` | string | `""` | Corporate proxy URL |
+| `apiKeySource` | string | `"environment"` | API key source: environment, file, or none |
 
-## Security Considerations
+## Security Firewall
 
-⚠️ **Warning**: When `dangerousSkipPermissions` is enabled, Claude Code runs without permission prompts. Only use this in trusted environments with secure devcontainers.
+When `enableFirewall` is enabled, the feature restricts network access to:
+- GitHub (github.com, raw.githubusercontent.com)
+- NPM Registry (registry.npmjs.org)
+- Node.js (nodejs.org)
+- Anthropic API (api.anthropic.com)
+- Your additional domains
 
-The firewall restricts outbound connections to:
-- NPM registry and Node.js resources
-- GitHub repositories
-- Anthropic API endpoints
-- Essential development tools
+**Important**: The firewall requires NET_ADMIN and NET_RAW capabilities:
+
+```json
+{
+  "capAdd": ["NET_ADMIN", "NET_RAW"]
+}
+```
+
+Or when running Docker directly:
+```bash
+docker run --cap-add=NET_ADMIN --cap-add=NET_RAW ...
+```
+
+## API Key Configuration
+
+Set your Anthropic API key based on the `apiKeySource` option:
+
+- **environment** (default): Set `ANTHROPIC_API_KEY` environment variable
+- **file**: Place key in `~/.anthropic/api_key`
+- **none**: Manual configuration required
 
 ## Examples
 
-### Basic Setup
+### Basic Installation
 ```json
 {
   "features": {
-    "ghcr.io/jonaswre/devcontainer-features/claude-code:1": {}
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {}
   }
 }
 ```
 
-### Corporate Environment
+### Without Firewall
 ```json
 {
   "features": {
-    "ghcr.io/jonaswre/devcontainer-features/claude-code:1": {
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {
+      "enableFirewall": false
+    }
+  }
+}
+```
+
+### With Corporate Proxy
+```json
+{
+  "features": {
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {
       "proxyUrl": "http://proxy.company.com:8080",
-      "additionalDomains": "internal.company.com,api.company.com"
+      "additionalDomains": "api.company.com,cdn.company.com"
     }
   }
 }
 ```
 
-### CI/CD Automation
+### Node.js 22
 ```json
 {
   "features": {
-    "ghcr.io/jonaswre/devcontainer-features/claude-code:1": {
-      "dangerousSkipPermissions": true,
-      "enableFirewall": true,
-      "apiKeySource": "file"
+    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {
+      "nodeVersion": "22"
     }
   }
 }
 ```
 
-## Commands
+## Requirements
 
-After installation, these commands are available:
-
-- `claude-code-status` - Check installation and configuration status
-- `claude-code --help` - Get started with Claude Code
-- `init-firewall.sh` - Reinitialize firewall rules (when enabled)
+- Debian/Ubuntu-based container
+- sudo (automatically installed)
+- For firewall: NET_ADMIN and NET_RAW capabilities
 
 ## License
 
-MIT - See LICENSE file for details
+MIT

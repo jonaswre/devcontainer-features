@@ -5,7 +5,6 @@ set -euo pipefail
 ENABLE_FIREWALL="${ENABLEFIREWALL:-true}"
 DANGEROUS_SKIP="${DANGEROUSSKIPPERMISSIONS:-false}"
 NODE_VERSION="${NODEVERSION:-20}"
-INSTALL_ZSH="${INSTALLZSH:-true}"
 ADDITIONAL_DOMAINS="${ADDITIONALDOMAINS:-}"
 PROXY_URL="${PROXYURL:-}"
 API_KEY_SOURCE="${APIKEYSOURCE:-environment}"
@@ -18,39 +17,26 @@ echo "==============================================="
 echo "Installing Claude Code Development Container"
 echo "==============================================="
 
-# Install system dependencies
+# Install minimal system dependencies
 apt-get update
 apt-get install -y --no-install-recommends \
+    sudo \
     curl \
     ca-certificates \
     gnupg \
     lsb-release \
     git \
-    build-essential \
-    python3 \
-    python3-pip \
     jq \
-    fzf \
-    ripgrep \
-    bat \
-    htop \
     net-tools \
     dnsutils \
     iptables \
-    ipset \
-    aggregate
+    ipset
 
 # Install Node.js
 curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -
 apt-get install -y nodejs
 
-# Install global npm packages
-npm install -g \
-    typescript \
-    ts-node \
-    nodemon \
-    prettier \
-    eslint
+# Claude Code CLI will be installed next
 
 # Install Claude Code CLI
 echo "Installing Claude Code CLI..."
@@ -80,60 +66,8 @@ else
     echo "You may need to install it manually with: npm install -g @anthropic-ai/claude-code"
 fi
 
-# Install ZSH and Oh My Zsh if requested
-if [ "${INSTALL_ZSH}" = "true" ]; then
-    echo "Installing ZSH with productivity enhancements..."
-    apt-get install -y zsh
-    
-    # Install Oh My Zsh for the user (skip if already installed)
-    if [ ! -d "${_REMOTE_USER_HOME}/.oh-my-zsh" ]; then
-        echo "Installing Oh My Zsh..."
-        export RUNZSH=no
-        export CHSH=no
-        export ZSH="${_REMOTE_USER_HOME}/.oh-my-zsh"
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || {
-            echo "Oh My Zsh installation failed, continuing without it"
-        }
-        # Fix ownership if user exists
-        if id "${_REMOTE_USER}" &>/dev/null; then
-            chown -R ${_REMOTE_USER}:${_REMOTE_USER} "${_REMOTE_USER_HOME}/.oh-my-zsh" 2>/dev/null || true
-        fi
-    else
-        echo "Oh My Zsh already installed"
-    fi
-    
-    # Configure ZSH plugins
-    mkdir -p "${_REMOTE_USER_HOME}"
-    cat >> "${_REMOTE_USER_HOME}/.zshrc" << 'EOF'
-
-# Claude Code devcontainer configuration
-export CLAUDE_CODE_DEVCONTAINER=true
-
-# Productivity aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias gs='git status'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git log --oneline --graph'
-
-# FZF configuration
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# Claude Code helpers
-alias claude-status='claude-code --version && echo "API Key configured: ${ANTHROPIC_API_KEY:+Yes}"'
-alias claude-test='claude-code --help'
-
-EOF
-    
-    # Set ZSH as default shell (only if user exists)
-    if id "${_REMOTE_USER}" &>/dev/null; then
-        chsh -s $(which zsh) ${_REMOTE_USER}
-    fi
-fi
+# Set environment variable to indicate devcontainer
+echo "export CLAUDE_CODE_DEVCONTAINER=true" >> /etc/bash.bashrc
 
 # Configure proxy if provided
 if [ -n "${PROXY_URL}" ]; then
@@ -199,14 +133,10 @@ if [ "${ENABLE_FIREWALL}" = "true" ]; then
     cp "$(dirname "$0")/init-firewall.sh" /usr/local/bin/init-firewall.sh
     chmod +x /usr/local/bin/init-firewall.sh
     
-    # Setup sudoers to allow user to run firewall script (only if sudoers exists)
-    if command -v sudo >/dev/null 2>&1; then
-        mkdir -p /etc/sudoers.d
-        echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
-        chmod 0440 /etc/sudoers.d/firewall
-    else
-        echo "Note: sudo not installed, firewall will require root to initialize"
-    fi
+    # Setup sudoers to allow user to run firewall script
+    mkdir -p /etc/sudoers.d
+    echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
+    chmod 0440 /etc/sudoers.d/firewall
     
     # Pass additional domains if provided via environment file
     if [ -n "${ADDITIONAL_DOMAINS}" ]; then
@@ -236,29 +166,9 @@ EOF
     echo "Note: Container must be run with NET_ADMIN and NET_RAW capabilities"
 fi
 
-# Create session persistence directory
-mkdir -p "${_REMOTE_USER_HOME}/.claude-code-sessions"
-if id "${_REMOTE_USER}" &>/dev/null; then
-    chown -R ${_REMOTE_USER}:${_REMOTE_USER} "${_REMOTE_USER_HOME}/.claude-code-sessions"
-fi
-
-# Create helper script for status checking
-cat > /usr/local/bin/claude-code-status << 'EOF'
-#!/bin/bash
-echo "Claude Code Development Container Status"
-echo "========================================"
-echo "Claude Code Version: $(claude --version 2>/dev/null || claude-code --version 2>/dev/null || echo 'Not installed')"
-echo "Node.js Version: $(node --version)"
-echo "NPM Version: $(npm --version)"
-echo "API Key Configured: ${ANTHROPIC_API_KEY:+Yes}"
-echo "Firewall Enabled: $(iptables -L -n 2>/dev/null | grep -q "Chain" && echo "Yes" || echo "No")"
-echo "Dangerous Skip Mode: $(command -v claude | grep -q dangerously && echo "Yes" || echo "No")"
-echo ""
-echo "Run 'claude-code --help' to get started"
-EOF
-chmod +x /usr/local/bin/claude-code-status
+# Create working directory
+mkdir -p /workspace
 
 echo "==============================================="
 echo "Claude Code installation complete!"
-echo "Run 'claude-code-status' to verify setup"
 echo "==============================================="

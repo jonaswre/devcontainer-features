@@ -4,7 +4,7 @@
   "name": "Claude Code Development Container",
   "documentationURL": "https://docs.anthropic.com/en/docs/claude-code",
   "licenseURL": "https://github.com/jonaswre/devcontainer-features/blob/main/LICENSE",
-  "description": "Production-ready Claude Code setup with enhanced security, firewall rules, and developer tools",
+  "description": "Minimal Claude Code CLI installation with optional security firewall",
   "options": {
     "enableFirewall": {
       "type": "boolean",
@@ -21,11 +21,6 @@
       "enum": ["18", "20", "22"],
       "default": "20",
       "description": "Node.js version to install"
-    },
-    "installZsh": {
-      "type": "boolean",
-      "default": true,
-      "description": "Install ZSH with productivity enhancements"
     },
     "additionalDomains": {
       "type": "string",
