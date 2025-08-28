@@ -12,10 +12,12 @@ fi
 # Check if ipset is available
 if ! command -v ipset &> /dev/null; then
     echo "Installing ipset..."
-    apt-get update && apt-get install -y ipset || {
+    if apt-get update && apt-get install -y ipset; then
+        USE_IPSET=true
+    else
         echo "Failed to install ipset, falling back to iptables-only mode"
         USE_IPSET=false
-    }
+    fi
 else
     USE_IPSET=true
 fi
