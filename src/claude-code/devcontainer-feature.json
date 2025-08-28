@@ -45,21 +45,5 @@
   "installsAfter": [
     "ghcr.io/devcontainers/features/common-utils",
     "ghcr.io/devcontainers/features/docker-in-docker"
-  ],
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "GitHub.copilot"
-      ],
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "files.watcherExclude": {
-          "**/node_modules/**": true,
-          "**/.git/**": true
-        }
-      }
-    }
-  }
+  ]
 }
