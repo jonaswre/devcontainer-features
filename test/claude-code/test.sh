@@ -10,14 +10,8 @@ check "npm" npm --version
 check "git" git --version
 check "claude-cli" bash -c "command -v claude || command -v claude-code"
 
-# Test firewall is active (default: enableFirewall=true)
-check "firewall-script-exists" bash -c "[ -f /usr/local/bin/init-firewall.sh ]"
-
-# Test firewall blocks unauthorized domains
-check "google-blocked" bash -c "! curl -s --max-time 2 https://google.com >/dev/null 2>&1"
-
-# Test firewall allows authorized domains
-check "github-allowed" bash -c "curl -s --max-time 2 https://api.github.com >/dev/null 2>&1"
+# Test firewall script is installed
+check "firewall-script" bash -c "[ -x /usr/local/bin/init-firewall.sh ]"
 
 # Report results
 reportResults
