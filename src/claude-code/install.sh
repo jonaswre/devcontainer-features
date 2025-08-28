@@ -199,10 +199,14 @@ if [ "${ENABLE_FIREWALL}" = "true" ]; then
     cp "$(dirname "$0")/init-firewall.sh" /usr/local/bin/init-firewall.sh
     chmod +x /usr/local/bin/init-firewall.sh
     
-    # Setup sudoers to allow user to run firewall script
-    mkdir -p /etc/sudoers.d
-    echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
-    chmod 0440 /etc/sudoers.d/firewall
+    # Setup sudoers to allow user to run firewall script (only if sudoers exists)
+    if command -v sudo >/dev/null 2>&1; then
+        mkdir -p /etc/sudoers.d
+        echo "${_REMOTE_USER} ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/firewall
+        chmod 0440 /etc/sudoers.d/firewall
+    else
+        echo "Note: sudo not installed, firewall will require root to initialize"
+    fi
     
     # Pass additional domains if provided via environment file
     if [ -n "${ADDITIONAL_DOMAINS}" ]; then
