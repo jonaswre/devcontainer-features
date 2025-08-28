@@ -6,7 +6,6 @@ ENABLE_FIREWALL="${ENABLEFIREWALL:-true}"
 DANGEROUS_SKIP="${DANGEROUSSKIPPERMISSIONS:-false}"
 NODE_VERSION="${NODEVERSION:-20}"
 ADDITIONAL_DOMAINS="${ADDITIONALDOMAINS:-}"
-PROXY_URL="${PROXYURL:-}"
 API_KEY_SOURCE="${APIKEYSOURCE:-environment}"
 
 # Set default user if not provided by devcontainer
@@ -68,27 +67,6 @@ fi
 
 # Set environment variable to indicate devcontainer
 echo "export CLAUDE_CODE_DEVCONTAINER=true" >> /etc/bash.bashrc
-
-# Configure proxy if provided
-if [ -n "${PROXY_URL}" ]; then
-    echo "Configuring proxy settings..."
-    cat >> /etc/environment << EOF
-HTTP_PROXY=${PROXY_URL}
-HTTPS_PROXY=${PROXY_URL}
-http_proxy=${PROXY_URL}
-https_proxy=${PROXY_URL}
-NO_PROXY=localhost,127.0.0.1,*.local
-no_proxy=localhost,127.0.0.1,*.local
-EOF
-    
-    # Configure npm proxy
-    npm config set proxy ${PROXY_URL}
-    npm config set https-proxy ${PROXY_URL}
-    
-    # Configure git proxy
-    git config --global http.proxy ${PROXY_URL}
-    git config --global https.proxy ${PROXY_URL}
-fi
 
 # Configure API key based on source
 case "${API_KEY_SOURCE}" in

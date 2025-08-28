@@ -27,11 +27,6 @@
       "default": "",
       "description": "Comma-separated list of additional domains to whitelist in firewall (e.g., 'api.example.com,cdn.example.com')"
     },
-    "proxyUrl": {
-      "type": "string",
-      "default": "",
-      "description": "Corporate proxy URL if needed (e.g., 'http://proxy.company.com:8080')"
-    },
     "apiKeySource": {
       "type": "string",
       "enum": ["environment", "file", "none"],

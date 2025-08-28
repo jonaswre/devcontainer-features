@@ -7,7 +7,6 @@ Minimal installation of Claude Code CLI with optional security firewall for DevC
 - **Claude Code CLI**: Installs the official Claude Code command-line interface
 - **Security Firewall** (optional): Restricts network access to approved domains only
 - **Node.js**: Configurable Node.js version (18, 20, or 22)
-- **Proxy Support**: Configure corporate proxy settings if needed
 - **API Key Management**: Flexible API key configuration options
 
 ## Installation
@@ -30,7 +29,6 @@ Add this feature to your `devcontainer.json`:
 | `dangerousSkipPermissions` | boolean | `false` | Run Claude Code with --dangerously-skip-permissions flag |
 | `nodeVersion` | string | `"20"` | Node.js version to install (18, 20, or 22) |
 | `additionalDomains` | string | `""` | Additional domains to whitelist (comma-separated) |
-| `proxyUrl` | string | `""` | Corporate proxy URL |
 | `apiKeySource` | string | `"environment"` | API key source: environment, file, or none |
 
 ## Security Firewall
@@ -80,18 +78,6 @@ Set your Anthropic API key based on the `apiKeySource` option:
   "features": {
     "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {
       "enableFirewall": false
-    }
-  }
-}
-```
-
-### With Corporate Proxy
-```json
-{
-  "features": {
-    "ghcr.io/jonaswre/devcontainer-features/claude-code:latest": {
-      "proxyUrl": "http://proxy.company.com:8080",
-      "additionalDomains": "api.company.com,cdn.company.com"
     }
   }
 }
