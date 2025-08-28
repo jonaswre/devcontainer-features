@@ -118,20 +118,21 @@ for domain in "${ALLOWED_DOMAINS[@]}"; do
     fi
 done
 
-# NOW set default policies to DROP
-iptables -P OUTPUT DROP
-iptables -P INPUT DROP
-iptables -P FORWARD DROP
-
-# Allow established connections AFTER setting DROP policies
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-
 # If using ipset, add the rules to allow HTTP/HTTPS traffic to the set
+# MUST be added BEFORE setting DROP policies
 if [ "$USE_IPSET" = true ]; then
     iptables -A OUTPUT -p tcp --dport 443 -m set --match-set allowed-domains dst -j ACCEPT
     iptables -A OUTPUT -p tcp --dport 80 -m set --match-set allowed-domains dst -j ACCEPT
 fi
+
+# Allow established connections BEFORE setting DROP policies
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# NOW set default policies to DROP
+iptables -P OUTPUT DROP
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
 
 # Explicitly reject remaining traffic for immediate feedback
 iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
