@@ -12,21 +12,28 @@ if [ ! -f /usr/local/bin/init-firewall.sh ]; then
     exit 1
 fi
 
-# Check sudo permissions
-if ! sudo -n true 2>/dev/null; then
-    echo "❌ Sudo not configured for firewall"
-    exit 1
+# Check if firewall is already initialized
+echo "Checking firewall status..."
+if iptables -L OUTPUT -n 2>/dev/null | grep -q "allowed-domains"; then
+    echo "✅ Firewall already initialized and active"
+else
+    # Try to initialize if not already running
+    echo "Firewall not active, attempting to initialize..."
+    
+    # Check sudo permissions
+    if ! sudo -n true 2>/dev/null; then
+        echo "❌ Sudo not configured for firewall"
+        exit 1
+    fi
+    
+    if ! sudo /usr/local/bin/init-firewall.sh; then
+        echo "❌ CRITICAL: Failed to initialize firewall"
+        echo "This test requires --cap-add=NET_ADMIN --cap-add=NET_RAW"
+        exit 1
+    fi
+    
+    echo "✅ Firewall initialized"
 fi
-
-# Initialize firewall - MUST succeed for security
-echo "Initializing firewall..."
-if ! sudo /usr/local/bin/init-firewall.sh; then
-    echo "❌ CRITICAL: Failed to initialize firewall"
-    echo "This test requires --cap-add=NET_ADMIN --cap-add=NET_RAW"
-    exit 1
-fi
-
-echo "✅ Firewall initialized"
 
 # Wait for rules to settle
 sleep 2
