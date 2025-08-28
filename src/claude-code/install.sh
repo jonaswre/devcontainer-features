@@ -36,7 +36,9 @@ apt-get install -y --no-install-recommends \
     htop \
     net-tools \
     dnsutils \
-    iptables
+    iptables \
+    ipset \
+    aggregate
 
 # Install Node.js
 curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -
